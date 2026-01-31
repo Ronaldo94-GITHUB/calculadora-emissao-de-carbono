@@ -1,10 +1,9 @@
 # 🌱 Carbon Calculator – Calculadora de Emissões de CO₂
 
-![Capa do Projeto](Carbono.png)
-
-
 Este projeto foi desenvolvido em **HTML, CSS e JavaScript** com foco em acessibilidade, responsividade e experiência moderna de usuário.  
 O objetivo é oferecer uma ferramenta prática para calcular e visualizar emissões de carbono em diferentes meios de transporte, com comparações interativas e relatórios visuais.
+
+![Capa do Projeto](Carbono.png)
 
 ---
 
