@@ -1,5 +1,3 @@
-# calculadora-emissao-de-carbono
-
 # 🌱 Carbon Calculator – Calculadora de Emissões de CO₂
 
 ![Capa do Projeto](Carbono.png)
