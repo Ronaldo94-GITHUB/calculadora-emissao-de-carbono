@@ -71,7 +71,8 @@ O sistema apresenta resultados em tempo real, com gráficos, comparações e sug
 ---
 
 ## 👨‍💻 Desenvolvedor
-Ronaldo94-GITHUB
+
+- [Ronaldo](https://github.com/Ronaldo94-GITHUB)
 
 ---
 
