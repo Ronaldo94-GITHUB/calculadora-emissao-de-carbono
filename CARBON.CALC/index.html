@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>🌿 Calculadora de Emissão de CO₂</title>
+  <meta name="description" content="Estimativa de emissões de CO₂ por transporte — calcule por origem, destino, distância e modo de transporte." />
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="theme-scale--large">
+  <a class="skip-link" href="#main">Ir para o conteúdo principal</a>
+
+  <header class="site-header">
+    <div class="container">
+      <h1 class="site-title">🌿 Calculadora de Emissão de CO₂</h1>
+      <p class="site-subtitle">Estimativa rápida das suas emissões com base em deslocamentos e modos de transporte.</p>
+    </div>
+  </header>
+
+  <main id="main" class="container" role="main">
+    <section id="calculator" aria-labelledby="calculator-title">
+      <h2 id="calculator-title">Calcular emissões</h2>
+
+      <!-- Compact calculator: modo de exibição estilo calculadora -->
+      <div id="calculator-compact" class="calculator-compact" aria-label="Calculadora compacta">
+        <div class="compact-row compact-inputs">
+          <input id="compact-origin" list="cities-list" class="compact-input" placeholder="Origem (cidade ou CEP)" aria-label="Origem">
+          <input id="compact-destination" list="cities-list" class="compact-input" placeholder="Destino (cidade ou CEP)" aria-label="Destino">
+        </div>
+
+        <div class="compact-row compact-distance-row">
+          <div class="compact-distance-wrap">
+            <input id="compact-distance" class="compact-distance" type="number" min="0" step="0.1" placeholder="Distância (km)" readonly aria-describedby="compact-distance-help">
+            <button id="compact-edit-distance" type="button" class="compact-edit-button" aria-pressed="false" aria-label="Editar distância">Editar</button>
+          </div>
+          <small id="compact-distance-help" class="helper-text">A distância será preenchida automaticamente</small>
+
+          <div class="compact-controls" style="display:flex;gap:.5rem;align-items:center;margin-top:.25rem;">
+            <label style="font-size:.9rem;display:flex;align-items:center;gap:.5rem;">
+              <input id="compact-use-road" type="checkbox">
+              Usar distância por estrada
+            </label>
+          </div>
+        </div>
+
+        <div class="compact-display" id="compact-display">— kg CO₂</div>
+
+        <div class="compact-transport-grid" role="tablist" aria-label="Modos de transporte">
+          <button type="button" class="compact-transport-btn" data-mode="bicycle">🚲<span class="visually-hidden">Bicicleta</span></button>
+          <button type="button" class="compact-transport-btn compact-transport-btn--selected" data-mode="car">🚗<span class="visually-hidden">Carro</span></button>
+          <button type="button" class="compact-transport-btn" data-mode="bus">🚌<span class="visually-hidden">Ônibus</span></button>
+          <button type="button" class="compact-transport-btn" data-mode="truck">🚛<span class="visually-hidden">Caminhão</span></button>
+        </div>
+
+        <div class="compact-actions">
+          <button id="compact-calc" class="button">Calcular</button>
+        </div>
+      </div>
+
+      <!-- Formulário principal oculto (mantido para compatibilidade lógica). Visualmente removido conforme pedido. -->
+      <form id="calculator-form" class="calc-form hidden" aria-hidden="true" novalidate>
+        <div class="form-row">
+          <label for="origin">Origem</label>
+          <input id="origin" name="origin" type="text" list="cities-list" autocomplete="on" placeholder="Cidade ou CEP">
+        </div>
+
+        <div class="form-row">
+          <label for="destination">Destino</label>
+          <input id="destination" name="destination" type="text" list="cities-list" autocomplete="on" placeholder="Cidade ou CEP">
+        </div>
+
+        <datalist id="cities-list">
+          <!-- Preenchido via JavaScript (js/routes-data.js) -->
+        </datalist>
+
+        <div class="form-row">
+          <label for="distance">Distância (km)</label>
+          <input id="distance" name="distance" type="number" min="0" step="0.1" aria-describedby="distance-help" readonly>
+          <small id="distance-help" class="helper-text">A distância será preenchida automaticamente ao selecionar rotas. Ative "Inserir manualmente" para editar.</small>
+        </div>
+
+        <div class="form-row checkbox-row">
+          <label for="manual-distance">
+            <input id="manual-distance" type="checkbox" aria-controls="distance">
+            Inserir distância manualmente
+          </label>
+        </div>
+
+        <div class="form-row checkbox-row">
+          <label for="use-road">
+            <input id="use-road" type="checkbox">
+            Usar distância por estrada (se disponível)
+          </label>
+        </div>
+
+        <fieldset class="form-fieldset">
+          <legend>Modo de transporte</legend>
+          <div class="transport-options">
+            <label>
+              <input type="radio" name="transport" value="bicycle"> 🚲 Bicicleta
+            </label>
+            <label>
+              <input type="radio" name="transport" value="car" checked> 🚗 Carro
+            </label>
+            <label>
+              <input type="radio" name="transport" value="bus"> 🚌 Ônibus
+            </label>
+            <label>
+              <input type="radio" name="transport" value="truck"> 🚚 Caminhão
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="form-actions">
+          <button type="submit">Calcular Emissão</button>
+        </div>
+
+        <div id="form-error" role="alert" aria-live="assertive" class="error" hidden></div>
+      </form>
+    </section>
+
+    <section id="results" aria-labelledby="results-title" aria-live="polite">
+      <h2 id="results-title">Resultados</h2>
+
+      <div class="result-summary">
+        <p>Emissão estimada:</p>
+        <output id="co2-output" name="co2">— kg CO₂</output>
+      </div>
+
+      <div class="result-extra">
+        <div id="credits-summary">
+          <p>Créditos de carbono necessários: <strong id="credits-output">—</strong></p>
+          <p class="text-muted">(Base: <span id="credit-kg-per">1000 kg/crédito</span>)</p>
+          <div id="credit-prices" class="text-muted">
+            <p>Estimativa de preço:</p>
+            <ul>
+              <li>Min: R$ <span id="credit-price-min">—</span></li>
+              <li>Máx: R$ <span id="credit-price-max">—</span></li>
+              <li>Média: R$ <span id="credit-price-avg">—</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div id="savings-summary">
+          <p>Economia vs Carro: <strong id="savings-output">— kg (—%)</strong></p>
+        </div>
+      </div>
+
+      <div class="result-meter">
+        <label for="co2-meter">Comparação</label>
+        <meter id="co2-meter" min="0" max="100" low="25" high="75" value="0"></meter>
+        <small class="helper-text">Percentual relativo a uma referência (ex.: 100 km de carro).</small>
+      </div>
+
+      <div id="results-cards" class="results-cards">
+        <!-- UI.renderResults irá inserir cartões de resumo aqui -->
+      </div>
+
+      <!-- Placeholders usados pela `js/app.js` para renderização e controle de visibilidade -->
+      <div id="results-content" class="results-cards hidden" aria-live="polite"></div>
+      <div id="comparison-content" class="hidden" aria-live="polite"></div>
+      <div id="carbon-credits-content" class="hidden" aria-live="polite"></div> 
+
+      <details class="result-details">
+        <summary>Detalhamento das emissões</summary>
+        <table aria-describedby="table-caption">
+          <caption id="table-caption">Quebra por trecho e por modo</caption>
+          <thead>
+            <tr><th>Trecho</th><th>Distância (km)</th><th>Modo</th><th>CO₂ (kg)</th></tr>
+          </thead>
+          <tbody id="result-breakdown">
+            <!-- Preenchido via JavaScript -->
+          </tbody>
+        </table>
+      </details>
+
+      <div id="comparison-container" class="comparison-container">
+        <!-- UI.renderComparison irá inserir aqui -->
+      </div>
+
+      <div id="credits-container" class="credits-container">
+        <!-- UI.renderCarbonCredits irá inserir aqui -->
+      </div>
+
+      <section id="routes-summary-section" aria-labelledby="routes-summary-title">
+        <h3 id="routes-summary-title">Resumo de Rotas</h3>
+        <div id="routes-summary-list" class="results-cards">
+          <!-- Preenchido por js/routes-data.js com emissões por rota e comparação entre modos -->
+        </div>
+      </section>
+    </section>
+
+    <aside aria-labelledby="tips-title" class="sidebar">
+      <h3 id="tips-title">Dicas para reduzir emissões</h3>
+      <ul>
+        <li>Prefira transporte coletivo ou bicicleta quando possível.</li>
+        <li>Faça rotas otimizadas e combine viagens.</li>
+        <li>Considere veículos elétricos ou de baixa emissão.</li>
+      </ul>
+
+      <details>
+        <summary>Premissas e fatores de emissão</summary>
+        <p>Os fatores de emissão usam valores médios por modo (ex.: gCO₂/km). Consulte as fontes para dados oficiais.</p>
+      </details>
+
+      <div id="compensation-history" class="compensation-history" aria-live="polite" style="margin-top:1rem;">
+        <h4 style="margin-bottom:.5rem">Histórico de Compensações</h4>
+        <ul id="compensation-list" class="text-muted" style="list-style:none;padding-left:0;margin:0;">
+          <li>Nenhuma compensação registrada.</li>
+        </ul>
+      </div>
+    </aside>
+
+    <noscript>
+      <p class="no-js">O JavaScript é necessário para calcular as emissões. Ative-o e recarregue a página.</p>
+    </noscript>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <small>Fonte: <a href="#" rel="noopener noreferrer">Exemplo de fonte de fatores de emissão</a></small>
+    </div>
+  </footer>
+
+  <!-- Dados de rotas/cidades e scripts -->
+  <script src="js/routes-db.js" defer></script>
+  <script src="js/routes-data.js" defer></script>
+  <script src="js/config.js" defer></script>
+  <script src="js/routing.js" defer></script>
+  <script src="js/calculator.js" defer></script>
+  <script src="js/j4uJs.js" defer></script>
+  <script src="js/ui.js" defer></script>
+  <script src="js/app.js" defer></script>
+
+
+</body>
+</html>
